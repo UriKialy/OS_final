@@ -1,11 +1,5 @@
 #include "MST.hpp"
-#include <limits>
-#include <functional>
-#include <queue>
-#include <stack>
-#include <algorithm> 
-#include <random>
-#include <ctime>
+
 using namespace std;
 
 MST::MST(Graph graph, string algo) : graph(graph)
@@ -355,7 +349,7 @@ vector<vector<int>> boruvkaStep(vector<vector<int>>& adj, DisjointSet& ds) {
     return mst_edges;
 }
 
-vector<vector<int>> integerMST(vector<vector<int>>& adj) {
+vector<vector<int>> MST::integerMST(vector<vector<int>>& adj) {
     int n = adj.size();
     DisjointSet ds(n);
     vector<vector<int>> mst;
@@ -368,4 +362,172 @@ vector<vector<int>> integerMST(vector<vector<int>>& adj) {
     }
 
     return mst;
+}
+
+vector<int>  MST::shortestPath(int start, int end)
+{
+    int n = mst.size();
+    
+    
+    if (n == 0 || start < 0 || end < 0 || start >= n || end >= n) {
+        return {};
+    }
+    
+    if (start == end) {
+        return {start};
+    }
+
+    vector<int> parent(n, -1);
+    vector<bool> visited(n, false);
+
+    // DFS to find the path
+    function<bool(int)> dfs = [&](int v) {
+        if (v == end) {
+            return true;
+        }
+        visited[v] = true;
+        for (int u = 0; u < n; ++u) {
+            if (mst[v][u] > 0 && !visited[u]) {
+                parent[u] = v;
+                if (dfs(u)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    dfs(start);
+
+    // Reconstruct the path
+    vector<int> path;
+    if (visited[end]) {
+        for (int v = end; v != -1; v = parent[v]) {
+            path.push_back(v);
+        }
+        reverse(path.begin(), path.end());
+    }
+
+    return path;
+}
+
+ 
+vector<vector<pair<int, int>>> MST::buildAdjList(const vector<vector<int>>& mst) {
+    int n = mst.size();
+    vector<vector<pair<int, int>>> adj(n);
+    for (int i = 0; i < n; ++i) {
+        for (int j = i + 1; j < n; ++j) {
+            if (mst[i][j] > 0) {
+                adj[i].emplace_back(j, mst[i][j]);
+                adj[j].emplace_back(i, mst[i][j]);
+            }
+        }
+    }
+    return adj;
+}
+
+void MST::dfs(const vector<vector<pair<int, int>>>& adj, int node, int parent, 
+         vector<int>& distance, vector<int>& parent_node) {
+    for (const auto& [child, weight] : adj[node]) {
+        if (child != parent) {
+            distance[child] = distance[node] + weight;
+            parent_node[child] = node;
+            dfs(adj, child, node, distance, parent_node);
+        }
+    }
+}
+
+vector<int> MST::reconstructPath(const vector<int>& parent_node, int start, int end) {
+    vector<int> path;
+    for (int v = end; v != start; v = parent_node[v]) {
+        path.push_back(v);
+    }
+    path.push_back(start);
+    reverse(path.begin(), path.end());
+    return path;
+}
+
+vector<int> MST::longestPath(int start, int end) {    
+    int n = mst.size();
+    if (start < 0 || start >= n || end < 0 || end >= n) {
+        return {};
+    }
+
+    auto adj = buildAdjList(mst);
+    
+    vector<int> distance(n, 0);
+    vector<int> parent_node(n, -1);
+    
+    // First DFS from start
+    dfs(adj, start, -1, distance, parent_node);
+    
+    // Find the farthest node from start
+    int farthest = max_element(distance.begin(), distance.end()) - distance.begin();
+    
+    // If end is not the farthest node, we need to check the path from the farthest node
+    if (farthest != end) {
+        vector<int> new_distance(n, 0);
+        vector<int> new_parent(n, -1);
+        
+        // Second DFS from the farthest node
+        dfs(adj, farthest, -1, new_distance, new_parent);
+        
+        // If the new path to end is longer, use it
+        if (new_distance[end] > distance[end]) {
+            return reconstructPath(new_parent, farthest, end);
+        }
+    }
+    
+    // Otherwise, return the path from start to end
+    return reconstructPath(parent_node, start, end);
+}
+int bfs(const std::vector<std::vector<std::pair<int, int>>>& adj, int start, int end) {
+    int n = adj.size();
+    std::vector<int> distance(n, -1);
+    std::queue<int> q;
+
+    q.push(start);
+    distance[start] = 0;
+
+    while (!q.empty()) {
+        int v = q.front();
+        q.pop();
+
+        if (v == end) {
+            return distance[v];
+        }
+
+        for (const auto& [u, weight] : adj[v]) {
+            if (distance[u] == -1) {
+                distance[u] = distance[v] + weight;
+                q.push(u);
+            }
+        }
+    }
+
+    return -1; // Should not reach here if the graph is connected
+}
+
+int MST::averageDist(int start, int end) {
+    extern std::vector<std::vector<int>> mst;
+    
+    int n = mst.size();
+    if (start < 0 || start >= n || end < 0 || end >= n) {
+        return -1; // Invalid input
+    }
+
+    if (start == end) {
+        return 0; // Same node, average distance is 0
+    }
+
+    auto adj = buildAdjList(mst);
+    
+    int total_distance = bfs(adj, start, end);
+    
+    if (total_distance == -1) {
+        return -1; // Nodes are not connected (should not happen in a valid MST)
+    }
+
+    // Calculate average and round to nearest integer
+    return static_cast<int>(std::round(static_cast<double>(total_distance) / 2));
 }
