@@ -11,6 +11,7 @@ Graph(vector<vector<int>> adjMat);
 vector<vector<int>> getAdjMat();
 int getNumVertices();
 int getNumEdges();
+void addEdge(int from, int to, int weight);
 
 
 
