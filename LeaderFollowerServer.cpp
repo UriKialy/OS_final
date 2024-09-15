@@ -171,6 +171,7 @@ private:
                     for (int v : path) {
                         response += std::to_string(v) + " ";
                     }
+                    response += "\n";
                     send(clientSocket, response.c_str(), response.size(), 0);
                     break;
                 }

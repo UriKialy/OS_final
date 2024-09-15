@@ -240,23 +240,25 @@ void handleClientPipeline(int newSocket, Graph *graphPtr)
         }
         case 5:
         { // Get the longest path in the MST
+            std::string pathRequest = "Provide the start and end vertices for the shortest path: ";
+            send(newSocket, pathRequest.c_str(), pathRequest.size(), 0);
+            char pathBuffer[1024] = {0};
+            read(newSocket, pathBuffer, 1024); // Read the start and end vertices
+            std::istringstream pathStream(pathBuffer);
+            int start, end;
             stage3.post([&]()
-                        {std::string prompt = "Provide the start and end vertices for the shortest path: ";
-                    send(newSocket, prompt.c_str(), prompt.size(), 0);
-                    char pathBuffer[1024] = {0};
-                    read(newSocket, pathBuffer, 1024);  // Read the start and end vertices
-                    std::istringstream pathStream(pathBuffer);
-                    int start, end;
+                        {
                     pathStream >> start >> end;
                         if (!mstCreated) {
                             mst = MST(*graphPtr, "kruskal"); // Create the MST
                             mstCreated = true;
                         }
                      std::vector<int> path = mst.longestPath(start, end);
-                    std::string response = "Longest path in MST: ";
+                    std::string response = "Longest path from "+ std::to_string(start) + " to " + std::to_string(end) + ": ";
                     for (int v : path) {
                         response += std::to_string(v) + " ";
                     }
+                    response += "\n";
                         send(newSocket, response.c_str(), response.size(), 0); });
             break;
         }
@@ -264,7 +266,6 @@ void handleClientPipeline(int newSocket, Graph *graphPtr)
         { // Get the shortest path in the MST
             std::string pathRequest = "Provide the start and end vertices for the shortest path: ";
             send(newSocket, pathRequest.c_str(), pathRequest.size(), 0);
-
             char pathBuffer[1024] = {0};
             read(newSocket, pathBuffer, 1024);
             std::istringstream pathStream(pathBuffer);

@@ -281,13 +281,13 @@ int MST::averageDist() {
 
     int totalDistance = 0;
     int pathCount = 0;
+    size_t n = mst.size();
 
     // Iterate through all pairs of vertices
-    for (size_t start = 0; start < mst.size(); ++start) {
-        for (size_t end = start + 1; end < mst.size(); ++end) {
-            vector<int> path = shortestPath(start, end);
-            if (!path.empty()) {
-                totalDistance += path.size() - 1;
+    for (size_t start = 0; start < n; ++start) {
+        for (size_t end = start + 1; end < n; ++end) {
+            if (mst[start][end] > 0) {
+                totalDistance += mst[start][end];
                 pathCount++;
             }
         }
@@ -297,5 +297,5 @@ int MST::averageDist() {
         return -1;
 
     // Calculate average and round up
-    return (totalDistance + pathCount - 1) / pathCount;
+    return (totalDistance + pathCount)  / pathCount;
 }
