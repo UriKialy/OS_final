@@ -29,3 +29,9 @@ void Graph::addEdge(int from, int to, int weight){
     }
     adjMat.at(from).at(to) = weight;
 }
+void Graph::removeEdge(int from, int to){
+    if (from < 0 || from >= numVertices || to < 0 || to >= numVertices||from==to) {
+        throw invalid_argument("Invalid vertex index");
+    }
+    adjMat.at(from).at(to) = 0;
+}   
