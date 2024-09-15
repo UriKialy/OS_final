@@ -56,7 +56,7 @@ private:
             "2. Add an edge (provide: from, to, weight)\n"
             "3. Remove an edge (provide: from, to)\n"
             "4. Get total weight of MST\n"
-            "5. Get longest path in MST\n"
+            "5. Get longest path in MST (provide: start, end)\n"
             "6. Get shortest path in MST (provide: start, end)\n"
             "7. Get average distance between two vertices in MST\n"
             "8. Print MST\n"
@@ -156,15 +156,21 @@ private:
                     break;
                 }
                 case 5: { // Get the longest path in the MST
+                 std::string prompt = "Provide the start and end vertices for the shortest path: ";
+                    send(clientSocket, prompt.c_str(), prompt.size(), 0);
+
+                    char pathBuffer[1024] = {0};
+                    read(clientSocket, pathBuffer, 1024);  // Read the start and end vertices
+
+                    std::istringstream pathStream(pathBuffer);
+                    int start, end;
+                    pathStream >> start >> end;
                     MST mst(*graphPtr, "kruskal");
-                    int longestPath = 0;
-                    for (int i = 0; i < graphPtr->getNumVertices(); ++i) {
-                        for (int j = i + 1; j < graphPtr->getNumVertices(); ++j) {
-                            auto path = mst.longestPath(i, j);
-                            longestPath = std::max(longestPath, static_cast<int>(path.size()) - 1);
-                        }
+                    std::vector<int> path = mst.longestPath(start, end);
+                    std::string response = "Longest path in MST: ";
+                    for (int v : path) {
+                        response += std::to_string(v) + " ";
                     }
-                    std::string response = "Longest path in MST: " + std::to_string(longestPath) + "\n";
                     send(clientSocket, response.c_str(), response.size(), 0);
                     break;
                 }
