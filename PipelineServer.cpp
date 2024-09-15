@@ -66,8 +66,8 @@ public:
         {
             std::unique_lock<std::mutex> lock(mutex);
             tasks.push(task);
+            cv.notify_one();
         }
-        cv.notify_one();
     }
 
     /**
@@ -79,9 +79,16 @@ public:
         {
             std::unique_lock<std::mutex> lock(mutex);
             running = false;
+            cv.notify_all();
         }
-        cv.notify_all();
-        worker.join();
+        if (worker.joinable())
+        {
+            worker.join();
+        }
+    }
+    ~ActiveObject()
+    {
+        stop();
     }
 };
 
