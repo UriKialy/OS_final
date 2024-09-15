@@ -12,16 +12,14 @@ class MST
 {
     Graph graph;
     vector<vector<int>> mst;
-    void prim(vector<vector<int>> &adj);
     void kruskal(vector<vector<int>> &adj);
     void boruvka(vector<vector<int>> &adj);
-    void tarjan(vector<vector<int>> &adj);
-    void integerMST(vector<vector<int>> &adj);
+ 
 
 public:
     MST(Graph graph, string algo);
     int getWieght();
-    int averageDist(int start, int end);
+    int averageDist();
     vector<int> longestPath(int start, int end);
     vector<int> shortestPath(int start, int end);
     vector<vector<int>> getMST();

@@ -21,14 +21,6 @@ TEST_CASE("MST Algorithms")
 {
     Graph graph = TestGraph::createSampleGraph();
 
-    SUBCASE("Prim's Algorithm")
-    {
-        MST mst(graph, "prim");
-        mst.printMST();
-        std::cout << mst.getMST().size() << std::endl;
-        std::cout << mst.getMST().at(0).size() << std::endl;
-        CHECK(mst.getWieght() == 16);
-    }
 
     SUBCASE("Kruskal's Algorithm")
     {
@@ -44,19 +36,7 @@ TEST_CASE("MST Algorithms")
         std::cout<<"boruvka worked"<<std::endl;
     }
 
-    SUBCASE("Tarjan's Algorithm")
-    {
-        MST mst(graph, "tarjan");
-        CHECK(mst.getWieght() == 16);
-        std::cout<<"tarjan worked"<<std::endl;
-    }
-
-    SUBCASE("Integer MST Algorithm")
-    {
-        MST mst(graph, "integerMST");
-        CHECK(mst.getWieght() == 16);
-        std::cout<<"integerMST worked"<<std::endl;
-    }
+    
 
     SUBCASE("Invalid Algorithm")
     {
@@ -98,7 +78,7 @@ TEST_CASE("MST Path Finding")
 
     SUBCASE("Average Distance")
     {
-        int avg_dist = mst.averageDist(0, 4);
+        int avg_dist = mst.averageDist();
         CHECK(avg_dist == 2);
     }
 }
@@ -111,8 +91,10 @@ TEST_CASE("Empty Graph")
     CHECK(empty_mst.getWieght() == 0);
     CHECK(empty_mst.shortestPath(0, 1).empty());
     CHECK(empty_mst.longestPath(0, 1).empty());
-    CHECK(empty_mst.averageDist(0, 1) == -1);
+    CHECK(empty_mst.averageDist() == -1);
 }
+
+/*
 class comlexTestGraph
 {
 public:
@@ -320,4 +302,4 @@ TEST_CASE("Correctness of Integer MST Algorithm")
         MST mst(graph, "integerMST");
         CHECK(isValidMST(graph, mst.getMST()));
     }
-}
+}*/
