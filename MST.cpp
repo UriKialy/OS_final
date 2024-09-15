@@ -190,9 +190,11 @@ vector<int> MST::shortestPath(int start, int end)
 {
     if (mst.empty())
         return {};
+    
     if (start == end)
         return {start};
-    int n = mst.size();
+    
+    int n = mst.size(); // Get the number of nodes from the adjacency matrix
     vector<bool> visited(n, false);
     vector<int> parent(n, -1);
     queue<int> q;
@@ -200,17 +202,20 @@ vector<int> MST::shortestPath(int start, int end)
     q.push(start);
     visited[start] = true;
 
+    // BFS to find the shortest path in an unweighted graph
     while (!q.empty())
     {
         int u = q.front();
         q.pop();
 
+        // If we have reached the destination, we can break
         if (u == end)
             break;
 
+        // Traverse neighbors in the adjacency matrix
         for (int v = 0; v < n; v++)
         {
-            if (mst[u][v] > 0 && !visited[v])
+            if (mst[u][v] > 0 && !visited[v])  // There is an edge and `v` is not visited
             {
                 visited[v] = true;
                 parent[v] = u;
@@ -219,17 +224,20 @@ vector<int> MST::shortestPath(int start, int end)
         }
     }
 
+    // If we never reached the destination, return an empty path
     if (!visited[end])
         return {};
 
+    // Reconstruct the path from `end` to `start` using the parent array
     vector<int> path;
     for (int v = end; v != -1; v = parent[v])
     {
         path.push_back(v);
     }
-    reverse(path.begin(), path.end());
+    reverse(path.begin(), path.end()); // Reverse to get the path from start to end
     return path;
 }
+
 
 vector<int> MST::longestPath(int start, int end)
 {
