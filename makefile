@@ -1,31 +1,26 @@
-CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -pedantic -g
-INCLUDES = -I.
-LIBS =
+# This Makefile is used to build and clean multiple subdirectories.
+# It provides targets for building all subdirectories, cleaning all subdirectories,
+# and running programs in the "q1" subdirectory.
 
-# Source files
-SOURCES = Graph.cpp MST.cpp
-TEST_SOURCES = MST_test.cpp
+SUBDIRS := $(wildcard */)
 
-# Object files
-OBJECTS = $(SOURCES:.cpp=.o)
-TEST_OBJECTS = $(TEST_SOURCES:.cpp=.o)
+.PHONY: all $(SUBDIRS)
 
-# Executables
-TEST = test_mst
+# Target to build all subdirectories
+all: $(SUBDIRS)
 
-.PHONY: all clean test
+$(SUBDIRS):
+	$(MAKE) -C $@
 
-all: $(TEST)
+.PHONY: clean
 
-$(TEST): $(OBJECTS) $(TEST_OBJECTS)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -o $@ $^ $(LIBS)
-
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
-
-test: $(TEST)
-	./$(TEST)
-
+# Target to clean all subdirectories
 clean:
-	rm -f $(OBJECTS) $(TEST_OBJECTS) $(TEST)
+	for dir in $(SUBDIRS); do \
+		$(MAKE) -C $$dir clean; \
+	done
+
+# Target to run programs in the "q1" subdirectory
+run-q1:
+	@echo "Running programs in directory q1"
+	@$(MAKE) -C q1/

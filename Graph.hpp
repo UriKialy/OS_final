@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <vector>
 using namespace std;
@@ -13,20 +14,4 @@ int getNumVertices();
 int getNumEdges();
 void addEdge(int from, int to, int weight);
 void removeEdge(int from, int to);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 };
