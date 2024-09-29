@@ -14,9 +14,7 @@ Graph::Graph(vector<vector<int>> adjMat): adjMat(adjMat) {
     }
 }
 }
-int Graph::getNumEdges(){
-    return numEdges;
-}
+
 int Graph::getNumVertices(){
     return numVertices;
 }
