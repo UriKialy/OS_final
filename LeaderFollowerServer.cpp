@@ -11,9 +11,11 @@
 #include <sstream>
 #include "Graph.hpp"
 #include "MST.hpp"
+#include <csignal>
 
-#define PORT 8097          // The port number the server will listen on
+#define PORT 8098          // The port number the server will listen on
 #define THREAD_POOL_SIZE 5 // Number of worker threads in the thread pool
+bool close_server=false;
 
 /**
  * Struct: Task
@@ -55,6 +57,7 @@ private:
         // Menu to display to the client
         std::string menu =
             "Menu:\n"
+            "0. Close server\n"
             "1. Create a new graph (provide adjacency matrix)\n"
             "2. Add an edge (provide: from, to, weight)\n"
             "3. Remove an edge (provide: from, to)\n"
@@ -94,6 +97,12 @@ private:
             // Handle different menu choices
             switch (choice)
             {
+            case 0:
+            { // Close the server
+                close(clientSocket); // Close the client socket
+                close_server=true;
+                return;
+            }    
             case 1:
             { // Create a new graph
                 std::string prompt = "Enter the number of vertices: ";
@@ -323,6 +332,7 @@ public:
  */
 int main()
 {
+
     int serverFd, newSocket;
     struct sockaddr_in address;
     int addrlen = sizeof(address);
@@ -376,7 +386,13 @@ int main()
         std::cout << "Accepted new client\n";
         Task newTask{newSocket, &graph}; // Create a new task for each client
         threadPool.addTask(newTask);     // Add the task to the thread pool
+        if(close_server)
+        {
+            close(serverFd);
+            return 0;
+        }
     }
+
 
     // If accept() fails
     if (newSocket < 0)
