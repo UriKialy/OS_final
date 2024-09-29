@@ -44,18 +44,6 @@ int MST::getWieght()
     return weight;
 }
 
-void MST::printMST()
-{
-    for (const auto &row : mst)
-    {
-        for (int val : row)
-        {
-            cout << val << " | ";
-        }
-        cout << endl;
-    }
-}
-
 vector<vector<int>> MST::getMST()
 {
     return mst;
