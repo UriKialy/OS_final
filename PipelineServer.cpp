@@ -11,9 +11,9 @@
 #include <vector>             // For handling dynamic arrays (adjacency matrices)
 #include "Graph.hpp"          // Includes custom Graph class
 #include "MST.hpp"            // Includes custom MST class
+#include <csignal>
 
-#define PORT 8094 // Defines the port number on which the server will listen for client connections
-
+#define PORT 8099 // Defines the port number on which the server will listen for client connections
 /**
  * Class: ActiveObject
  * Implements the Active Object design pattern. This class encapsulates an asynchronous task execution model,
@@ -103,6 +103,7 @@ std::string menu()
 {
     std::stringstream ss;
     ss << "Menu:\n";                                               // Adds the title "Menu:" to the stringstream
+    ss<< "0. Close server\n";                                       // Option 0: Close server
     ss << "1. Create a new graph (provide adjacency matrix)\n";    // Option 1: Create a new graph
     ss << "2. Add an edge (provide: from, to, weight)\n";          // Option 2: Add an edge to the graph
     ss << "3. Remove an edge (provide: from, to)\n";               // Option 3: Remove an edge from the graph
@@ -115,6 +116,8 @@ std::string menu()
     return ss.str();                                               // Converts the stringstream to a string and returns it
 }
 
+
+
 /**
  * Function: handleClientPipeline
  * Handles client interaction and requests through a socket. The function interacts with the client
@@ -124,10 +127,10 @@ std::string menu()
  * @param newSocket The socket descriptor for communicating with the client.
  * @param graphPtr A pointer to the Graph object to perform operations on.
  */
-void handleClientPipeline(int newSocket, Graph *graphPtr)
+void handleClientPipeline(int newSocket,int serverFd, Graph *graphPtr)
 {
     ActiveObject stage1, stage2, stage3;               // ActiveObject instances to handle stages of the pipeline
-    static MST mst(*graphPtr, "kruskal");              // MST object initialized with the current graph
+    static MST mst(*graphPtr, "boruvka");              // MST object initialized with the current graph
     static bool mstCreated = false;                    // Tracks whether the MST has been created
     bool graphExists = graphPtr->getNumVertices() > 0; // Checks if the graph exists
 
@@ -161,6 +164,12 @@ void handleClientPipeline(int newSocket, Graph *graphPtr)
 
         switch (choice)
         {
+        case 0:
+        {//close server
+            close(newSocket);
+            close(serverFd);
+            return;
+        }    
         case 1:
         { // Create a new graph
             std::string response = "Enter the number of vertices: ";
@@ -237,7 +246,7 @@ void handleClientPipeline(int newSocket, Graph *graphPtr)
             stage2.post([&]()
                         {
                         if (!mstCreated) {
-                            mst = MST(*graphPtr, "kruskal"); // Create the MST
+                            mst = MST(*graphPtr, "boruvka"); // Create the MST
                             mstCreated = true;
                         }
                         int weight = mst.getWieght();
@@ -257,7 +266,7 @@ void handleClientPipeline(int newSocket, Graph *graphPtr)
                         {
                     pathStream >> start >> end;
                         if (!mstCreated) {
-                            mst = MST(*graphPtr, "kruskal"); // Create the MST
+                            mst = MST(*graphPtr, "boruvka"); // Create the MST
                             mstCreated = true;
                         }
                      std::vector<int> path = mst.longestPath(start, end);
@@ -282,7 +291,7 @@ void handleClientPipeline(int newSocket, Graph *graphPtr)
             stage3.post([&]()
                         {
                         if (!mstCreated) {
-                            mst = MST(*graphPtr, "kruskal"); // Create the MST
+                            mst = MST(*graphPtr, "boruvka"); // Create the MST
                             mstCreated = true;
                         }
                         auto path = mst.shortestPath(start, end);
@@ -299,7 +308,7 @@ void handleClientPipeline(int newSocket, Graph *graphPtr)
             stage3.post([&]()
                         {
                         if (!mstCreated) {
-                            mst = MST(*graphPtr, "kruskal"); // Create the MST
+                            mst = MST(*graphPtr, "boruvka"); // Create the MST
                             mstCreated = true;
                         }
                         int avg = mst.averageDist();
@@ -313,7 +322,7 @@ void handleClientPipeline(int newSocket, Graph *graphPtr)
                         {
                             if (!mstCreated)
                             {
-                                mst = MST(*graphPtr, "kruskal"); // Create the MST
+                                mst = MST(*graphPtr, "boruvka"); // Create the MST
                                 mstCreated = true;
                             }
                             std::stringstream mstStream;   // To build the MST output
@@ -348,6 +357,7 @@ void handleClientPipeline(int newSocket, Graph *graphPtr)
  */
 int main()
 {
+    
     int serverFd, newSocket;
     struct sockaddr_in address;
     int addrlen = sizeof(address);
@@ -397,7 +407,7 @@ int main()
     while ((newSocket = accept(serverFd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) >= 0)
     {
         std::cout << "Accepted new client" << std::endl;
-        handleClientPipeline(newSocket, &graph); // Handle client requests
+        handleClientPipeline(newSocket,serverFd, &graph); // Handle client requests
     }
 
     if (newSocket < 0)
