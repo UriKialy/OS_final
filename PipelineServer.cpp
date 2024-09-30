@@ -14,6 +14,7 @@
 #include <csignal>
 
 #define PORT 8099 // Defines the port number on which the server will listen for client connections
+bool close_server=false;
 /**
  * Class: ActiveObject
  * Implements the Active Object design pattern. This class encapsulates an asynchronous task execution model,
@@ -30,6 +31,7 @@ private:
     bool running = true;                     // Indicates whether the worker thread should continue running
 
 public:
+    
     /**
      * Constructor: Starts the worker thread.
      * The worker thread runs in an infinite loop, waiting for tasks to be posted in the queue.
@@ -127,7 +129,7 @@ std::string menu()
  * @param newSocket The socket descriptor for communicating with the client.
  * @param graphPtr A pointer to the Graph object to perform operations on.
  */
-void handleClientPipeline(int newSocket,int serverFd, Graph *graphPtr)
+void handleClientPipeline(int newSocket, Graph *graphPtr)
 {
     ActiveObject stage1, stage2, stage3;               // ActiveObject instances to handle stages of the pipeline
     static MST mst(*graphPtr, "boruvka");              // MST object initialized with the current graph
@@ -167,7 +169,7 @@ void handleClientPipeline(int newSocket,int serverFd, Graph *graphPtr)
         case 0:
         {//close server
             close(newSocket);
-            close(serverFd);
+            close_server=true;
             return;
         }    
         case 1:
@@ -407,7 +409,12 @@ int main()
     while ((newSocket = accept(serverFd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) >= 0)
     {
         std::cout << "Accepted new client" << std::endl;
-        handleClientPipeline(newSocket,serverFd, &graph); // Handle client requests
+        handleClientPipeline(newSocket, &graph); // Handle client requests
+        if(close_server)
+        {
+            close(serverFd);
+            return 0;
+        }
     }
 
     if (newSocket < 0)
