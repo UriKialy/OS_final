@@ -135,59 +135,65 @@ void MST::kruskal(vector<vector<int>> &adj)
  *
  * @param adj The adjacency matrix of the input graph.
  */
+
 void MST::boruvka(vector<vector<int>> &adj)
 {
+    // Check if the adjacency matrix is empty (no vertices)
     if (adj.empty())
         return;
-    int n = adj.size();
-    vector<int> parent(n);
-    vector<int> rank(n, 0);
+
+    int n = adj.size(); // Number of vertices in the graph
+    vector<int> parent(n); // Array to keep track of the parent of each node for union-find
+    vector<int> rank(n, 0); // Rank array for union by rank in union-find
+
+    // Initialize each vertex to be its own parent (self-loop) initially
     for (int i = 0; i < n; i++)
         parent[i] = i;
 
-    function<int(int)> find = [&](int x)
-    {
+    // Function to find the root of a node with path compression
+    function<int(int)> find = [&](int x) {
         if (parent[x] != x)
-            parent[x] = find(parent[x]);
+            parent[x] = find(parent[x]); // Path compression
         return parent[x];
     };
 
-    auto unite = [&](int x, int y)
-    {
+    // Function to union two sets by rank
+    auto unite = [&](int x, int y) {
         x = find(x);
         y = find(y);
-        if (x == y)
+        if (x == y) // If both vertices are in the same set, return false
             return false;
-        if (rank[x] < rank[y])
+        if (rank[x] < rank[y]) // Union by rank
             swap(x, y);
-        parent[y] = x;
+        parent[y] = x; // Make x the parent of y
         if (rank[x] == rank[y])
-            rank[x]++;
+            rank[x]++; // Increment rank if both have the same rank
         return true;
     };
 
-    bool change = true;
-    while (change)
-    {
+    bool change = true; // Flag to track if we added any edges in the current iteration
+
+    // Continue until no more edges can be added to the MST
+    while (change) {
         change = false;
+        // Array to store the cheapest edge for each component
         vector<pair<int, int>> cheapest(n, {-1, -1});
 
-        // Find the cheapest edge for each component
-        for (int i = 0; i < n; i++)
-        {
-            for (int j = 0; j < n; j++)
-            {
-                if (adj[i][j] > 0)
-                {
-                    int set1 = find(i), set2 = find(j);
-                    if (set1 != set2)
-                    {
-                        if (cheapest[set1].second == -1 || adj[i][j] < adj[cheapest[set1].first][cheapest[set1].second])
-                        {
+        // Loop through each vertex and find the cheapest outgoing edge for each component
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                // If there's an edge between i and j
+                if (adj[i][j] > 0) {
+                    int set1 = find(i); // Find component of vertex i
+                    int set2 = find(j); // Find component of vertex j
+                    // If they are in different components, find the cheaper edge
+                    if (set1 != set2) {
+                        // Update cheapest edge for set1 if needed
+                        if (cheapest[set1].second == -1 || adj[i][j] < adj[cheapest[set1].first][cheapest[set1].second]) {
                             cheapest[set1] = {i, j};
                         }
-                        if (cheapest[set2].second == -1 || adj[i][j] < adj[cheapest[set2].first][cheapest[set2].second])
-                        {
+                        // Update cheapest edge for set2 if needed
+                        if (cheapest[set2].second == -1 || adj[i][j] < adj[cheapest[set2].first][cheapest[set2].second]) {
                             cheapest[set2] = {i, j};
                         }
                     }
@@ -195,23 +201,24 @@ void MST::boruvka(vector<vector<int>> &adj)
             }
         }
 
-        // Add the cheapest edges to MST and merge components
-        for (int i = 0; i < n; i++)
-        {
-            if (cheapest[i].second != -1)
-            {
-                int u = cheapest[i].first, v = cheapest[i].second;
-                int set1 = find(u), set2 = find(v);
-                if (set1 != set2)
-                {
-                    mst[u][v] = mst[v][u] = adj[u][v];
-                    unite(set1, set2);
-                    change = true;
+        // Add the cheapest edges found to the MST
+        for (int i = 0; i < n; i++) {
+            if (cheapest[i].second != -1) { // If there's a valid edge
+                int u = cheapest[i].first;
+                int v = cheapest[i].second;
+                int set1 = find(u);
+                int set2 = find(v);
+                // If u and v are in different components, add edge to MST
+                if (set1 != set2) {
+                    mst[u][v] = mst[v][u] = adj[u][v]; // Add edge (u, v) to MST
+                    unite(set1, set2); // Union the two components
+                    change = true; // Mark that we made a change
                 }
             }
         }
     }
 }
+
 
 /**
  * shortestPath
