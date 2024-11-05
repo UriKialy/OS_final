@@ -5,6 +5,15 @@
 
 using namespace std;
 
+/**
+ * MST Constructor
+ * Initializes the MST based on the provided graph and the chosen algorithm (either "kruskal" or "boruvka").
+ * The MST is represented as an adjacency matrix, initialized to zero.
+ * If an invalid algorithm is specified, an error message is printed.
+ *
+ * @param graph The input graph represented by an adjacency matrix.
+ * @param algo The chosen algorithm for constructing the MST.
+ */
 MST::MST(Graph graph, string algo) : graph(graph)
 {
     vector<vector<int>> adjmat = graph.getAdjMat();
@@ -29,6 +38,12 @@ MST::MST(Graph graph, string algo) : graph(graph)
     }
 }
 
+/**
+ * getWeight
+ * Calculates and returns the total weight of the edges in the MST.
+ *
+ * @return The total weight of the MST, or 0 if the MST is empty.
+ */
 int MST::getWieght()
 {
     if (mst.empty())
@@ -44,11 +59,24 @@ int MST::getWieght()
     return weight;
 }
 
+/**
+ * getMST
+ * Returns the adjacency matrix of the MST.
+ *
+ * @return The MST adjacency matrix.
+ */
 vector<vector<int>> MST::getMST()
 {
     return mst;
 }
 
+/**
+ * kruskal
+ * Constructs the MST using Kruskal's algorithm, which sorts all edges and
+ * adds them incrementally while avoiding cycles.
+ *
+ * @param adj The adjacency matrix of the input graph.
+ */
 void MST::kruskal(vector<vector<int>> &adj)
 {
     if (adj.empty())
@@ -56,6 +84,7 @@ void MST::kruskal(vector<vector<int>> &adj)
     int n = adj.size();
     vector<tuple<int, int, int>> edges;
 
+    // Collect all edges with weights into a list of tuples
     for (int i = 0; i < n; i++)
     {
         for (int j = i + 1; j < n; j++)
@@ -88,6 +117,7 @@ void MST::kruskal(vector<vector<int>> &adj)
             parent[y] = x;
     };
 
+    // Add edges to MST, avoiding cycles
     for (const auto &[w, u, v] : edges)
     {
         if (find(u) != find(v))
@@ -98,6 +128,13 @@ void MST::kruskal(vector<vector<int>> &adj)
     }
 }
 
+/**
+ * boruvka
+ * Constructs the MST using Borůvka's algorithm, which finds the cheapest edge
+ * for each component and merges components until only one remains.
+ *
+ * @param adj The adjacency matrix of the input graph.
+ */
 void MST::boruvka(vector<vector<int>> &adj)
 {
     if (adj.empty())
@@ -135,6 +172,7 @@ void MST::boruvka(vector<vector<int>> &adj)
         change = false;
         vector<pair<int, int>> cheapest(n, {-1, -1});
 
+        // Find the cheapest edge for each component
         for (int i = 0; i < n; i++)
         {
             for (int j = 0; j < n; j++)
@@ -157,6 +195,7 @@ void MST::boruvka(vector<vector<int>> &adj)
             }
         }
 
+        // Add the cheapest edges to MST and merge components
         for (int i = 0; i < n; i++)
         {
             if (cheapest[i].second != -1)
@@ -174,6 +213,14 @@ void MST::boruvka(vector<vector<int>> &adj)
     }
 }
 
+/**
+ * shortestPath
+ * Finds the shortest path between two nodes in the MST using BFS.
+ *
+ * @param start The start node.
+ * @param end The end node.
+ * @return A vector representing the path from start to end, or an empty vector if no path exists.
+ */
 vector<int> MST::shortestPath(int start, int end)
 {
     if (mst.empty())
@@ -182,7 +229,7 @@ vector<int> MST::shortestPath(int start, int end)
     if (start == end)
         return {start};
     
-    int n = mst.size(); // Get the number of nodes from the adjacency matrix
+    int n = mst.size();
     vector<bool> visited(n, false);
     vector<int> parent(n, -1);
     queue<int> q;
@@ -190,20 +237,17 @@ vector<int> MST::shortestPath(int start, int end)
     q.push(start);
     visited[start] = true;
 
-    // BFS to find the shortest path in an unweighted graph
     while (!q.empty())
     {
         int u = q.front();
         q.pop();
 
-        // If we have reached the destination, we can break
         if (u == end)
             break;
 
-        // Traverse neighbors in the adjacency matrix
         for (int v = 0; v < n; v++)
         {
-            if (mst[u][v] > 0 && !visited[v])  // There is an edge and `v` is not visited
+            if (mst[u][v] > 0 && !visited[v])
             {
                 visited[v] = true;
                 parent[v] = u;
@@ -212,21 +256,26 @@ vector<int> MST::shortestPath(int start, int end)
         }
     }
 
-    // If we never reached the destination, return an empty path
     if (!visited[end])
         return {};
 
-    // Reconstruct the path from `end` to `start` using the parent array
     vector<int> path;
     for (int v = end; v != -1; v = parent[v])
     {
         path.push_back(v);
     }
-    reverse(path.begin(), path.end()); // Reverse to get the path from start to end
+    reverse(path.begin(), path.end());
     return path;
 }
 
-
+/**
+ * longestPath
+ * Finds the longest path between two nodes in the MST using DFS.
+ *
+ * @param start The start node.
+ * @param end The end node.
+ * @return A vector representing the longest path from start to end, or an empty vector if no path exists.
+ */
 vector<int> MST::longestPath(int start, int end)
 {
     if (mst.empty())
@@ -263,6 +312,12 @@ vector<int> MST::longestPath(int start, int end)
     return path;
 }
 
+/**
+ * averageDist
+ * Calculates the average distance of all edges in the MST.
+ *
+ * @return The average edge distance or -1 if no paths exist in the MST.
+ */
 int MST::averageDist() {
     if (mst.empty())
         return -1;
@@ -271,7 +326,6 @@ int MST::averageDist() {
     int pathCount = 0;
     size_t n = mst.size();
 
-    // Iterate through all pairs of vertices
     for (size_t start = 0; start < n; ++start) {
         for (size_t end = start + 1; end < n; ++end) {
             if (mst[start][end] > 0) {
@@ -284,6 +338,5 @@ int MST::averageDist() {
     if (pathCount == 0)
         return -1;
 
-    // Calculate average and round up
-    return (totalDistance + pathCount)  / pathCount;
+    return (totalDistance + pathCount) / pathCount;
 }
